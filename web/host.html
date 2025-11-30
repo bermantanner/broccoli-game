@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>host lobby</title>
+  <link rel="stylesheet" href="/web/static/css/host.css" />
+</head>
+
+<body>
+  <div class="container">
+    <h1>host</h1>
+
+    <div class="room-box">
+      <span class="label">room code:</span>
+      <span class="code">AXD2</span>
+    </div>
+
+    <button class="start-btn">start game</button>
+
+    <div class="games-box">
+      <p>select game
+      <p>
+      <div class="game-options">
+        <div class="game-card">drawn together</div>
+        <div class="game-card">game 2</div>
+        <div class="game-card">game 3</div>
+        <div class="game-card">game 4</div>
+      </div>
+    </div>
+
+    <div class="lobby-box">
+      <p>players</p>
+      <ul id="player-list">
+        <li>tanner</li>
+        <li>luke</li>
+        <li>kris</li>
+        <li>joey dominant</li>
+        <li>gunner</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- temporary script for selecting, lets move this to a seperate JS file later-->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const gameOptions = document.querySelector('.game-options');
+
+      gameOptions.addEventListener('click', (event) => {
+        const card = event.target.closest('.game-card');
+        if (!card) return; // clicked outside a game selection card
+
+        const currentSelected = card.classList.contains('selected');
+
+        // remove selection from all cards
+        document.querySelectorAll('.game-card.selected').forEach(c => c.classList.remove('selected'));
+
+        // if it wasn't already selected, select this one
+        if (!currentSelected) {
+          card.classList.add('selected');
+        }
+        // if it was already selected, we leave everything unselected
+      });
+    });
+  </script>
+
+</body>
+
+</html>

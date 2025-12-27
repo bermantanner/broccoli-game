@@ -120,9 +120,15 @@ h2 {
 }
 
 .game-card:hover {
+  border-color: var(--color-blue);
+  color: var(--color-blue);
+}
+
+.game-card.selected {
   background: var(--color-blue);
   color: white;
 }
+
 
 /*         START BUTTON          */
 
@@ -139,9 +145,4 @@ h2 {
 
 .start-btn:hover {
   background: var(--color-blue);
-}
-
-.game-card.selected {
-  background: var(--color-blue);
-  color: white;
 }

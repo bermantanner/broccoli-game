@@ -1,27 +1,19 @@
 package main
 
 import (
-    "fmt"
-    "net/http"
+	"fmt"
+	"log"
+	"net/http"
 )
 
-func hello(w http.ResponseWriter, req *http.Request) {
-    fmt.Fprintf(w, "hello\n")
-}
-
-func headers(w http.ResponseWriter, req *http.Request) {
-
-    for name, headers := range req.Header {
-        for _, h := range headers {
-            fmt.Fprintf(w, "%v: %v\n", name, h)
-        }
-    }
+func health(w http.ResponseWriter, req *http.Request) {
+	log.Printf("%s --> %s", req.Method, req.URL.Path)
+	fmt.Fprintf(w, "ok\n")
 }
 
 func main() {
 
-    http.HandleFunc("/hello", hello)
-    http.HandleFunc("/headers", headers)
+	http.HandleFunc("/health", health)
 
-    http.ListenAndServe(":8090", nil)
+	http.ListenAndServe(":8090", nil)
 }

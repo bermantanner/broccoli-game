@@ -23,10 +23,6 @@ type Hub struct {
 	broadcast  chan []byte
 }
 
-type CreateRoomResponse struct {
-	Room string `json:"room"`
-}
-
 func newHub() *Hub {
 	hub := Hub{}
 	hub.clients = make(map[*Client]bool)
@@ -91,6 +87,14 @@ func (rm *RoomManager) GetOrCreateRoom(code string) *Hub {
 	return hub
 }
 
+func (rm *RoomManager) GetRoom(code string) (*Hub, bool) {
+	rm.mu.Lock()
+	defer rm.mu.Unlock()
+
+	hub, exists := rm.rooms[code]
+	return hub, exists
+}
+
 func createRoomHandler(rm *RoomManager) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 		if req.Method != http.MethodPost {
@@ -136,13 +140,17 @@ func wsHandler(rm *RoomManager) http.HandlerFunc {
 			return
 		}
 
+		hub, exists := rm.GetRoom(room)
+		if !exists {
+			http.Error(w, "room not found", http.StatusNotFound)
+			return
+		}
+
 		conn, err := upgrader.Upgrade(w, req, nil)
 		if err != nil {
 			log.Println("error: ", err)
 			return
 		}
-
-		hub := rm.GetOrCreateRoom(room)
 
 		client := &Client{conn: conn, send: make(chan []byte, 256)}
 		hub.register <- client
@@ -187,6 +195,10 @@ func writePump(client *Client) {
 			break
 		}
 	}
+}
+
+type CreateRoomResponse struct {
+	Room string `json:"room"`
 }
 
 func main() {

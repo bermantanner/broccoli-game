@@ -1,8 +1,12 @@
 package main
 
 import (
+	"crypto/rand"
+	"encoding/json"
 	"log"
+	"math/big"
 	"net/http"
+	"sync"
 
 	"github.com/gorilla/websocket"
 )
@@ -17,6 +21,10 @@ type Hub struct {
 	register   chan *Client
 	unregister chan *Client
 	broadcast  chan []byte
+}
+
+type CreateRoomResponse struct {
+	Room string `json:"room"`
 }
 
 func newHub() *Hub {
@@ -56,26 +64,91 @@ func (h *Hub) run() {
 	}
 }
 
+type RoomManager struct {
+	mu    sync.Mutex
+	rooms map[string]*Hub
+}
+
+func newRoomManager() *RoomManager {
+	roomManager := RoomManager{}
+	roomManager.rooms = make(map[string]*Hub)
+
+	return &roomManager
+}
+
+func (rm *RoomManager) GetOrCreateRoom(code string) *Hub {
+	rm.mu.Lock()
+	defer rm.mu.Unlock()
+	hub, exists := rm.rooms[code]
+
+	if exists {
+		return hub
+	}
+
+	hub = newHub()
+	go hub.run()
+	rm.rooms[code] = hub
+	return hub
+}
+
+func createRoomHandler(rm *RoomManager) http.HandlerFunc {
+	return func(w http.ResponseWriter, req *http.Request) {
+		if req.Method != http.MethodPost {
+			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+
+		code := generateRoomCode()
+		rm.GetOrCreateRoom(code)
+
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(CreateRoomResponse{Room: code})
+	}
+}
+
+func generateRoomCode() string {
+	//later on we should make it regenerate if a code exists.
+	const length = 4
+	const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
+
+	code := make([]byte, length)
+
+	for i := 0; i < length; i++ {
+		n, err := rand.Int(rand.Reader, big.NewInt(int64(len(alphabet))))
+		if err != nil {
+			panic(err)
+		}
+		code[i] = alphabet[n.Int64()]
+	}
+
+	return string(code)
+}
+
 var upgrader = websocket.Upgrader{
 	CheckOrigin: func(r *http.Request) bool { return true },
 }
 
-// this is a bit confusing, but the traditional handlerfunc is unable to know
-// about our hub unless we make it public (which is bad practice)
-// so, we must make this handler function that knows about our hub
-func wsHandler(hub *Hub) http.HandlerFunc {
+func wsHandler(rm *RoomManager) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
+		room := req.URL.Query().Get("room")
+		if room == "" {
+			http.Error(w, "missing room code in URL param", http.StatusBadRequest)
+			return
+		}
+
 		conn, err := upgrader.Upgrade(w, req, nil)
 		if err != nil {
 			log.Println("error: ", err)
 			return
 		}
 
-		client := Client{conn: conn, send: make(chan []byte, 256)}
-		hub.register <- &client
+		hub := rm.GetOrCreateRoom(room)
 
-		go writePump(&client)
-		readPump(hub, &client)
+		client := &Client{conn: conn, send: make(chan []byte, 256)}
+		hub.register <- client
+
+		go writePump(client)
+		readPump(hub, client)
 
 	}
 }
@@ -117,9 +190,9 @@ func writePump(client *Client) {
 }
 
 func main() {
-	hub := newHub()
-	go hub.run()
+	roomManager := newRoomManager()
 
-	http.HandleFunc("/ws", wsHandler(hub))
+	http.HandleFunc("/create-room", createRoomHandler(roomManager))
+	http.HandleFunc("/ws", wsHandler(roomManager))
 	http.ListenAndServe(":8090", nil)
 }

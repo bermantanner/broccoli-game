@@ -3,6 +3,7 @@ package main
 import (
 	"crypto/rand"
 	"encoding/json"
+	"fmt"
 	"log"
 	"math/big"
 	"net/http"
@@ -12,8 +13,11 @@ import (
 )
 
 type Client struct {
-	conn *websocket.Conn
-	send chan []byte
+	conn   *websocket.Conn
+	send   chan []byte
+	room   string
+	name   string
+	isHost bool
 }
 
 type Hub struct {
@@ -39,11 +43,17 @@ func (h *Hub) run() {
 		case c := <-h.register:
 			h.clients[c] = true
 			log.Println("registered new client --> total: ", len(h.clients))
+
+			joinMsg := []byte(fmt.Sprintf(`{"type":"join","name":%q}`, c.name))
+			h.broadcastToAll(joinMsg)
 		case c := <-h.unregister:
 			if _, exists := h.clients[c]; exists {
 				delete(h.clients, c)
 				close(c.send) // this tells writer loop to exit
 				log.Println("unregistered client --> total: ", len(h.clients))
+
+				leaveMsg := []byte(fmt.Sprintf(`{"type":"leave","name":%q}`, c.name))
+				h.broadcastToAll(leaveMsg)
 			}
 		case msg := <-h.broadcast:
 			for c := range h.clients {
@@ -56,6 +66,17 @@ func (h *Hub) run() {
 				}
 
 			}
+		}
+	}
+}
+
+func (h *Hub) broadcastToAll(msg []byte) {
+	for c := range h.clients {
+		select {
+		case c.send <- msg:
+		default:
+			delete(h.clients, c)
+			close(c.send)
 		}
 	}
 }
@@ -146,13 +167,19 @@ func wsHandler(rm *RoomManager) http.HandlerFunc {
 			return
 		}
 
+		name := req.URL.Query().Get("name")
+		if name == "" {
+			http.Error(w, "missing name in URL param", http.StatusBadRequest)
+			return
+		}
+
 		conn, err := upgrader.Upgrade(w, req, nil)
 		if err != nil {
 			log.Println("error: ", err)
 			return
 		}
 
-		client := &Client{conn: conn, send: make(chan []byte, 256)}
+		client := &Client{conn: conn, send: make(chan []byte, 256), room: room, name: name}
 		hub.register <- client
 
 		go writePump(client)
@@ -201,10 +228,19 @@ type CreateRoomResponse struct {
 	Room string `json:"room"`
 }
 
+type ServerEvent struct {
+	Type    string   `json:"type"` // "join", "leave", "chat", "lobby"
+	Room    string   `json:"room"`
+	Name    string   `json:"name,omitempty"`
+	Host    bool     `json:"host,omitempty"`
+	Text    string   `json:"text,omitempty"`
+	Players []string `json:"players,omitempty"`
+}
+
 func main() {
 	roomManager := newRoomManager()
 
 	http.HandleFunc("/create-room", createRoomHandler(roomManager))
 	http.HandleFunc("/ws", wsHandler(roomManager))
-	http.ListenAndServe(":8090", nil)
+	log.Fatal(http.ListenAndServe(":8090", nil))
 }

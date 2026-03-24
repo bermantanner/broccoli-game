@@ -28,7 +28,7 @@ input {
   font-family: var(--font-main);
   background: transparent;
   border: 1px solid var(--color-black);
-  padding: 15px;
+  padding: 5px;
   font-size: 1.2rem;
   text-align: center;
   width: 100%;
@@ -41,15 +41,9 @@ input:focus {
   box-shadow: 2px 2px 0px var(--color-blue);
 }
 
-#codeInput {
-  text-transform: uppercase;
-  font-weight: bold;
-  letter-spacing: 5px;
-}
-
 #joinBtn {
   width: 100%;
-  padding: 15px;
+  padding: 5px;
   font-size: 1.2rem;
   background: var(--color-black);
   color: var(--color-white);

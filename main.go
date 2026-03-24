@@ -13,11 +13,12 @@ import (
 )
 
 type Client struct {
-	conn   *websocket.Conn
-	send   chan []byte
-	room   string
-	name   string
-	isHost bool
+	conn     *websocket.Conn
+	send     chan []byte
+	room     string
+	name     string
+	isHost   bool
+	isPlayer bool
 }
 
 type Hub struct {
@@ -46,6 +47,7 @@ func (h *Hub) run() {
 
 			joinMsg := []byte(fmt.Sprintf(`{"type":"join","name":%q}`, c.name))
 			h.broadcastToAll(joinMsg)
+			h.broadcastToAll(h.lobbySnapshot(c.room))
 		case c := <-h.unregister:
 			if _, exists := h.clients[c]; exists {
 				delete(h.clients, c)
@@ -54,6 +56,7 @@ func (h *Hub) run() {
 
 				leaveMsg := []byte(fmt.Sprintf(`{"type":"leave","name":%q}`, c.name))
 				h.broadcastToAll(leaveMsg)
+				h.broadcastToAll(h.lobbySnapshot(c.room))
 			}
 		case msg := <-h.broadcast:
 			for c := range h.clients {
@@ -79,6 +82,30 @@ func (h *Hub) broadcastToAll(msg []byte) {
 			close(c.send)
 		}
 	}
+}
+
+func (h *Hub) lobbySnapshot(room string) []byte {
+	players := []string{}
+	hostName := ""
+
+	for c := range h.clients {
+		if c.isPlayer == true {
+			players = append(players, c.name)
+		} else {
+			hostName = c.name
+		}
+	}
+
+	event := map[string]any{
+		"type":    "lobby",
+		"room":    room,
+		"players": players,
+		"host":    hostName,
+	}
+
+	b, _ := json.Marshal(event)
+	return b
+
 }
 
 type RoomManager struct {
@@ -173,13 +200,26 @@ func wsHandler(rm *RoomManager) http.HandlerFunc {
 			return
 		}
 
+		role := req.URL.Query().Get("role")
+		if role == "" {
+			http.Error(w, "missing role in URL param", http.StatusBadRequest)
+			return
+		}
+
 		conn, err := upgrader.Upgrade(w, req, nil)
 		if err != nil {
 			log.Println("error: ", err)
 			return
 		}
 
-		client := &Client{conn: conn, send: make(chan []byte, 256), room: room, name: name}
+		client := &Client{
+			conn:     conn,
+			send:     make(chan []byte, 256),
+			room:     room,
+			name:     name,
+			isHost:   role == "host",
+			isPlayer: role != "host",
+		}
 		hub.register <- client
 
 		go writePump(client)
@@ -228,19 +268,14 @@ type CreateRoomResponse struct {
 	Room string `json:"room"`
 }
 
-type ServerEvent struct {
-	Type    string   `json:"type"` // "join", "leave", "chat", "lobby"
-	Room    string   `json:"room"`
-	Name    string   `json:"name,omitempty"`
-	Host    bool     `json:"host,omitempty"`
-	Text    string   `json:"text,omitempty"`
-	Players []string `json:"players,omitempty"`
-}
-
 func main() {
 	roomManager := newRoomManager()
 
 	http.HandleFunc("/create-room", createRoomHandler(roomManager))
 	http.HandleFunc("/ws", wsHandler(roomManager))
+
+	http.Handle("/web/", http.StripPrefix("/web/", http.FileServer(http.Dir("./web"))))
+
+	log.Println("Server starting on :8090...")
 	log.Fatal(http.ListenAndServe(":8090", nil))
 }

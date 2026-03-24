@@ -1,0 +1,68 @@
+/* web/static/css/join.css */
+body {
+  /* center everything specifically for the mobile view */
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  min-height: 100vh;
+  padding-top: 20vh;
+}
+
+.mobile-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  width: 90%;
+  max-width: 350px;
+  text-align: center;
+}
+
+h1 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+
+input {
+  font-family: var(--font-main);
+  background: transparent;
+  border: 1px solid var(--color-black);
+  padding: 15px;
+  font-size: 1.2rem;
+  text-align: center;
+  width: 100%;
+  outline: none;
+  transition: 0.2s ease;
+}
+
+input:focus {
+  border-color: var(--color-blue);
+  box-shadow: 2px 2px 0px var(--color-blue);
+}
+
+#codeInput {
+  text-transform: uppercase;
+  font-weight: bold;
+  letter-spacing: 5px;
+}
+
+#joinBtn {
+  width: 100%;
+  padding: 15px;
+  font-size: 1.2rem;
+  background: var(--color-black);
+  color: var(--color-white);
+  border: none;
+}
+
+#joinBtn:hover {
+  background: var(--color-blue);
+  transform: translateY(-2px);
+}
+
+#error-msg {
+  color: red;
+  font-size: 0.85rem;
+  min-height: 1rem;
+}

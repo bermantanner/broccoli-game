@@ -79,6 +79,23 @@ if (window.location.pathname.includes("host.html")) {
             playerList.appendChild(li);
         });
     }
+
+    const startBtn = document.getElementById("startGameBtn");
+
+    if (startBtn) {
+        startBtn.addEventListener("click", () => {
+            // make sure the socket is actually connected before sending
+            if (socket && socket.readyState === WebSocket.OPEN) {
+                const payload = {
+                    type: "start_game"
+                };
+                socket.send(JSON.stringify(payload));
+                console.log("Sent start signal to Go server!");
+            } else {
+                console.error("Cannot start game: WebSocket is not connected.");
+            }
+        });
+    }
 }
 
 // player join logic
@@ -130,7 +147,7 @@ if (window.location.pathname.includes("join.html")) {
             console.log("Disconnected from server.");
             joinUi.classList.remove("hidden");
             waitingUi.classList.add("hidden");
-            errorMsg.innerText = "Disconnected from host.";
+            errorMsg.innerText = "disconnected from host.";
         };
     });
 }

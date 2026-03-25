@@ -32,6 +32,10 @@ func (rm *RoomManager) GetOrCreateRoom(code string) *Hub {
 	}
 
 	hub = newHub()
+
+	hub.CurrentState = &Lobby{}
+	hub.CurrentState.Start(hub)
+
 	go hub.run()
 	rm.rooms[code] = hub
 	return hub

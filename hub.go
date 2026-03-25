@@ -2,15 +2,20 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 )
 
 type Hub struct {
-	clients    map[*Client]bool
-	register   chan *Client
-	unregister chan *Client
-	broadcast  chan []byte
+	clients      map[*Client]bool
+	register     chan *Client
+	unregister   chan *Client
+	broadcast    chan *ClientMessage
+	CurrentState Game
+}
+
+type ClientMessage struct {
+	client *Client
+	data   []byte
 }
 
 func newHub() *Hub {
@@ -18,41 +23,38 @@ func newHub() *Hub {
 	hub.clients = make(map[*Client]bool)
 	hub.register = make(chan *Client)
 	hub.unregister = make(chan *Client)
-	hub.broadcast = make(chan []byte)
-
+	hub.broadcast = make(chan *ClientMessage)
+	// CurrentState starts as nil until we explicitly set it to lobby or game
 	return &hub
 }
 
 func (h *Hub) run() {
 	for {
-		select { // this is basically "pause here until one of these channels has data"
+		select {
 		case c := <-h.register:
 			h.clients[c] = true
 			log.Println("registered new client --> total: ", len(h.clients))
 
-			joinMsg := []byte(fmt.Sprintf(`{"type":"join","name":%q}`, c.name))
-			h.broadcastToAll(joinMsg)
-			h.broadcastToAll(h.lobbySnapshot(c.room))
+			// let the CurrentState handle the new player
+			if h.CurrentState != nil {
+				h.CurrentState.AddPlayer(c)
+			}
+
 		case c := <-h.unregister:
 			if _, exists := h.clients[c]; exists {
 				delete(h.clients, c)
-				close(c.send) // this tells writer loop to exit
+				close(c.send)
 				log.Println("unregistered client --> total: ", len(h.clients))
 
-				leaveMsg := []byte(fmt.Sprintf(`{"type":"leave","name":%q}`, c.name))
-				h.broadcastToAll(leaveMsg)
-				h.broadcastToAll(h.lobbySnapshot(c.room))
-			}
-		case msg := <-h.broadcast:
-			for c := range h.clients {
-				select {
-				case c.send <- msg:
-				default:
-					// client's send channel is full or blocked, so we drop client
-					delete(h.clients, c)
-					close(c.send)
+				// let the CurrentState handle the disconnected player
+				if h.CurrentState != nil {
+					h.CurrentState.RemovePlayer(c)
 				}
+			}
 
+		case msgObj := <-h.broadcast:
+			if h.CurrentState != nil {
+				h.CurrentState.HandleMessage(msgObj.client, msgObj.data)
 			}
 		}
 	}
@@ -91,4 +93,20 @@ func (h *Hub) lobbySnapshot(room string) []byte {
 	b, _ := json.Marshal(event)
 	return b
 
+}
+
+// sends a targeted message to a single specific player in the Hub
+func (h *Hub) SendToPlayer(playerName string, msg []byte) {
+	for client := range h.clients {
+		if client.name == playerName {
+			select {
+			case client.send <- msg:
+			default:
+				// if their channel is blocked, drop them
+				delete(h.clients, client)
+				close(client.send)
+			}
+			break // stop looping because player was found and msg sent
+		}
+	}
 }

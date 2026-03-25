@@ -84,7 +84,11 @@ func readPump(hub *Hub, client *Client) {
 
 		log.Printf("recieved: %s", string(msg))
 
-		hub.broadcast <- msg
+		clientMsg := &ClientMessage{
+			client: client,
+			data:   msg,
+		}
+		hub.broadcast <- clientMsg
 	}
 }
 

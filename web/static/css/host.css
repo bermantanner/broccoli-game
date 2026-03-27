@@ -124,3 +124,50 @@ h2 {
 .start-btn:hover {
   background: var(--color-blue);
 }
+
+/* OPTIONS BOX */
+.options-box {
+  margin-top: 15px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.options-content {
+  border: 1px solid black;
+  padding: 15px 20px;
+  min-width: 180px;
+  text-align: left;
+}
+
+.option-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  gap: 15px;
+  font-size: 0.85rem;
+}
+
+.option-row:last-child {
+  margin-bottom: 0;
+}
+
+.option-row input {
+  font-family: var(--font-main);
+  border: 1px solid black;
+  background: var(--color-white);
+  padding: 2px 5px;
+  width: 45px;
+  text-align: center;
+}
+
+/* removing default arrows from number inputs for a cleaner look */
+.option-row input::-webkit-outer-spin-button,
+.option-row input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.option-row input[type=number] {
+  -moz-appearance: textfield;
+}

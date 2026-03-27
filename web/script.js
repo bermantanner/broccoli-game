@@ -1,15 +1,39 @@
-cards = document.querySelectorAll('.game-card');
+const cards = document.querySelectorAll('.game-card');
+const optionsBox = document.getElementById('options-box');
+const optionsContent = document.getElementById('options-content');
 
 cards.forEach(card => {
     card.addEventListener('click', function() {
+        // if clicking the already selected card, deselect it
         if (card.classList.contains('selected')) {
             card.classList.remove('selected');
+            optionsBox.classList.add('hidden');
+            optionsContent.innerHTML = '';
         }
         else {
-            cards.forEach(c => {
-                c.classList.remove('selected');
-            });
+            // deselect all others, select this one
+            cards.forEach(c => c.classList.remove('selected'));
             card.classList.add('selected');
+
+            // inject specific options based on the game name
+            const gameName = card.innerText.trim();
+            if (gameName === 'drawn together') {
+                optionsBox.classList.remove('hidden');
+                optionsContent.innerHTML = `
+                    <div class="option-row">
+                        <label for="rounds">rounds (1-3):</label>
+                        <input type="number" id="rounds" min="1" max="3" value="3">
+                    </div>
+                    <div class="option-row">
+                        <label for="duration">duration (1-30m):</label>
+                        <input type="number" id="duration" min="1" max="30" value="3">
+                    </div>
+                `;
+            } else {
+                // for other games right now, leave options empty and hidden
+                optionsBox.classList.add('hidden');
+                optionsContent.innerHTML = '';
+            }
         }
     });
 });
@@ -84,13 +108,28 @@ if (window.location.pathname.includes("host.html")) {
 
     if (startBtn) {
         startBtn.addEventListener("click", () => {
-            // make sure the socket is actually connected before sending
+            // make sure a game is actually selected
+            const selectedGame = document.querySelector('.game-card.selected');
+            if (!selectedGame) {
+                console.log("no game selected!");
+                return; // prevent starting without a game
+            }
+
             if (socket && socket.readyState === WebSocket.OPEN) {
+                const gameName = selectedGame.innerText.trim();
                 const payload = {
-                    type: "start_game"
+                    type: "start_game",
+                    game: gameName
                 };
+
+                // grab the specific settings for selected game
+                if (gameName === 'drawn together') {
+                    payload.rounds = parseInt(document.getElementById('rounds').value) || 3;
+                    payload.duration = parseInt(document.getElementById('duration').value) || 3;
+                }
+
                 socket.send(JSON.stringify(payload));
-                console.log("Sent start signal to Go server!");
+                console.log("Sent start signal:", payload);
             } else {
                 console.error("Cannot start game: WebSocket is not connected.");
             }

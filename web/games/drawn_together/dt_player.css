@@ -1,0 +1,61 @@
+/* --- DRAWING PHASE UI --- */
+
+#dt-drawing-app {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    margin-top: 10px;
+}
+
+#dt-drawing-app h2 {
+    margin-bottom: 15px;
+    font-size: 1.2rem;
+}
+
+/* container wraps tightly around the canvas so absolute 
+  positioning for the dashed lines works well
+*/
+.canvas-container {
+    position: relative;
+    border: 2px solid black;
+    background: white;
+    /* force the CSS size to match the Canvas logical size to prevent distortion */
+    width: 300px; 
+    height: 400px;
+    touch-action: none; /* prevents browser pull-to-refresh when drawing */
+    box-shadow: 4px 4px 0px rgba(0,0,0,0.1);
+}
+
+#dt-canvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+    cursor: crosshair;
+}
+
+/* Visual Dashed Zones (On top of the canvas) */
+.boundary-top, .boundary-bottom {
+    position: absolute;
+    left: 0;
+    width: 100%;
+    height: 40px; /* Matches BOUNDARY_ZONE in JS */
+    pointer-events: none; /* Lets clicks pass through to the canvas */
+    background: repeating-linear-gradient(
+        45deg,
+        rgba(0,0,0,0.03),
+        rgba(0,0,0,0.03) 10px,
+        rgba(0,0,0,0.08) 10px,
+        rgba(0,0,0,0.08) 20px
+    );
+}
+
+.boundary-top {
+    top: 0;
+    border-bottom: 2px dashed rgba(0,0,0,0.3);
+}
+
+.boundary-bottom {
+    bottom: 0;
+    border-top: 2px dashed rgba(0,0,0,0.3);
+}

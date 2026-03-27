@@ -7,44 +7,54 @@
   <title>host lobby</title>
   <link rel="stylesheet" href="/web/static/css/global.css" />
   <link rel="stylesheet" href="/web/static/css/host.css" />
+  <link rel="stylesheet" href="/web/games/drawn_together/dt_host.css" />
 </head>
 
 <body>
   <div class="container">
-    <h1>host</h1>
+    
+    <div id="connection-ui">
+      <h1>host</h1>
 
-    <div class="room-box">
-      <span class="label">room code:</span>
-      <span class="code">AXD2</span>
-    </div>
+      <div class="room-box">
+        <span class="label">room code:</span>
+        <span class="code">....</span>
+      </div>
 
-    <button class="start-btn" id="startGameBtn">start game</button>
+      <button class="start-btn" id="startGameBtn">start game</button>
 
-    <div class="games-box">
-      <p>select game</p>
-      <div class="game-options">
-        <div class="game-card">drawn together</div>
-        <div class="game-card">game 2</div>
-        <div class="game-card">game 3</div>
-        <div class="game-card">game 4</div>
+      <div class="main-row">
+        <div class="games-box">
+          <p>select game</p>
+          <div class="game-options">
+            <div class="game-card">drawn together</div>
+            <div class="game-card">game 2</div>
+            <div class="game-card">game 3</div>
+            <div class="game-card">game 4</div>
+          </div>
+        </div>
+
+        <div class="lobby-box">
+          <p>players</p>
+          <ul id="player-list">
+            <li>waiting for players...</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="options-box hidden" id="options-box">
+        <p>options</p>
+        <div class="options-content" id="options-content">
+        </div>
       </div>
     </div>
 
-    <div class="options-box hidden" id="options-box">
-      <p>options</p>
-      <div class="options-content" id="options-content">
-        </div>
-    </div>
+    <div id="game-root"></div>
 
-    <div class="lobby-box">
-      <p>players</p>
-      <ul id="player-list">
-        <li>example_player1</li>
-        <li>example_player2</li>
-      </ul>
-    </div>
   </div>
-  <script src="/web/script.js"></script>
+
+  <script src="/web/main.js"></script>
+  <script src="/web/games/drawn_together/dt_host.js"></script>
 </body>
 
 </html>

@@ -7,24 +7,33 @@
   <title>join lobby</title>
   <link rel="stylesheet" href="/web/static/css/global.css" />
   <link rel="stylesheet" href="/web/static/css/join.css" />
+  <link rel="stylesheet" href="/web/games/drawn_together/dt_player.css" />
 </head>
 
 <body>
-  <div class="mobile-container" id="join-ui">
-    <h1>join game</h1>
-    <input type="text" id="codeInput" placeholder="room code" maxlength="4" />
-    <input type="text" id="nameInput" placeholder="your name" maxlength="12" />
-    <button id="joinBtn">play</button>
-    <p id="error-msg" style="color: red; margin-top: 10px;"></p>
+  
+  <div id="connection-ui">
+    
+    <div class="mobile-container" id="join-ui">
+      <h1>join game</h1>
+      <input type="text" id="codeInput" placeholder="room code" maxlength="4" />
+      <input type="text" id="nameInput" placeholder="your name" maxlength="12" />
+      <button id="joinBtn">play</button>
+      <p id="error-msg"></p>
+    </div>
+
+    <div class="mobile-container hidden" id="waiting-ui">
+      <h1>you're in.</h1>
+      <p>look at the host screen.</p>
+      <p>waiting for the game to start...</p>
+    </div>
+
   </div>
 
-  <div class="mobile-container hidden" id="waiting-ui">
-    <h1>you're in.</h1>
-    <p>look at the host screen.</p>
-    <p>waiting for the game to start...</p>
-  </div>
+  <div id="game-root"></div>
 
-  <script src="/web/script.js"></script>
+  <script src="/web/main.js"></script>
+  <script src="/web/games/drawn_together/dt_player.js"></script>
 </body>
 
 </html>

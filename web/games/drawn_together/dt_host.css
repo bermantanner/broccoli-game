@@ -1,0 +1,136 @@
+#dt-host-app {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    margin-top: 20px;
+}
+
+#dt-host-app .team-columns {
+    display: flex;
+    gap: 30px;
+    margin-top: 20px;
+    margin-bottom: 30px;
+    justify-content: center;
+    width: 100%;
+}
+
+#dt-host-app .col {
+    border: 1px solid black;
+    padding: 15px;
+    min-width: 150px;
+    text-align: center;
+}
+
+#dt-host-app ul {
+    list-style: none;
+    padding: 0;
+    margin-top: 15px;
+    text-align: left;
+}
+
+#dt-host-app li {
+    margin-bottom: 5px;
+}
+
+#dt-host-app #dt-lock-btn {
+    padding: 10px 20px;
+    font-weight: bold;
+}
+
+/* --- TIMER UI --- */
+
+#dt-host-timer-app {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    margin-top: 50px;
+    text-align: center;
+}
+
+#dt-host-timer-app h2 {
+    font-size: 2rem;
+    margin-bottom: 20px;
+}
+
+#dt-clock {
+    font-size: 6rem;
+    font-weight: bold;
+    font-family: var(--font-main);
+    margin-bottom: 20px;
+    transition: color 0.3s ease;
+}
+
+#dt-host-timer-app p {
+    font-size: 1.2rem;
+    color: #555;
+}
+
+/* --- NEW: REVEAL UI --- */
+
+#dt-host-reveal-app {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    margin-top: 20px;
+}
+
+#dt-host-reveal-app h2 {
+    font-size: 2rem;
+    margin-bottom: 30px;
+}
+
+.reveal-container {
+    display: flex;
+    gap: 80px; /* Space between Team 1 and Team 2 */
+    justify-content: center;
+}
+
+.team-result {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.team-result h3 {
+    margin-bottom: 15px;
+    font-size: 1.5rem;
+}
+
+.drawing-stack {
+    display: flex;
+    flex-direction: column;
+    border: 3px solid black;
+    background: white;
+    box-shadow: 8px 8px 0px rgba(0,0,0,0.1);
+}
+
+.canvas-slice {
+    width: 300px;
+    height: 400px;
+    display: block;
+    /* THE MAGIC OVERLAP: Pulls the next image up by 40px to hide the seam */
+    margin-bottom: -40px; 
+}
+
+/* We don't want a negative margin on the very bottom image */
+.canvas-slice:last-child {
+    margin-bottom: 0;
+}
+
+.next-round-msg {
+    margin-top: 50px;
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: var(--color-blue);
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.5; }
+    100% { opacity: 1; }
+}

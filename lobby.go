@@ -26,10 +26,42 @@ func (l *Lobby) HandleMessage(client *Client, msg []byte) {
 
 	// If the Host clicks the start button
 	if data["type"] == "start_game" && client.isHost {
-		log.Println("Host is starting the game!")
+		gameName, _ := data["game"].(string)
 
-		// this is where state will swap later
-		l.hub.broadcastToAll(msg)
+		// enforce game-specific player limits
+		if gameName == "drawn together" {
+			playerCount := 0
+			for c := range l.hub.clients {
+				if c.isPlayer {
+					playerCount++
+				}
+			}
+
+			if playerCount != 4 && playerCount != 6 {
+				log.Printf("Start blocked: Drawn Together requires 4 or 6 players. Current: %d", playerCount)
+
+				// send a targeted error message only to Host
+				errorMsg := map[string]string{
+					"type":    "error",
+					"message": "Drawn Together requires exactly 4 or 6 players to start!",
+				}
+				b, _ := json.Marshal(errorMsg)
+				client.send <- b
+				return // stop executing! do not transition states.
+			}
+		}
+
+		log.Println("Host is starting the game! Transitioning to Team Select.")
+		// extract the options (JSON numbers parse as float64)
+		rounds, _ := data["rounds"].(float64)
+		duration, _ := data["duration"].(float64)
+
+		// unplug the Lobby, plug in TeamSelect and pass the settings!
+		l.hub.CurrentState = &TeamSelect{
+			TotalRounds: int(rounds),
+			Duration:    int(duration),
+		}
+		l.hub.CurrentState.Start(l.hub)
 	}
 }
 

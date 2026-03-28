@@ -67,6 +67,7 @@ h2 {
   text-align: left;
   border: 1px solid black;
   min-width: 140px;
+  min-height: 79px;
 }
 
 #player-list li {
@@ -81,8 +82,8 @@ h2 {
 }
 
 .game-options {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+  display: flex;
+  flex-direction: column; 
   gap: 10px;
 }
 

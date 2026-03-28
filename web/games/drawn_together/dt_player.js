@@ -6,7 +6,7 @@ let ctx = null;
 
 // Local coordinate space settings
 const CANVAS_WIDTH = 300;
-const CANVAS_HEIGHT = 400;
+const CANVAS_HEIGHT = 250;
 const BOUNDARY_ZONE = 40;
 const OFFSET = CANVAS_HEIGHT - BOUNDARY_ZONE; // 360
 
@@ -150,6 +150,11 @@ function setupCanvasListeners(canvas) {
         const pos = getMousePos(canvas, e);
         const currentX = pos.x;
         const currentY = pos.y;
+
+        if (currentX < 0 || currentX > CANVAS_WIDTH || currentY < 0 || currentY > CANVAS_HEIGHT) {
+            stopDrawing();
+            return;
+        }
 
         // draw locally
         drawLine(ctx, lastX, lastY, currentX, currentY);

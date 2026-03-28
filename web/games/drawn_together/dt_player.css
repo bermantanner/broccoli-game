@@ -22,7 +22,7 @@
     background: white;
     /* force the CSS size to match the Canvas logical size to prevent distortion */
     width: 300px; 
-    height: 400px;
+    height: 250px;
     touch-action: none; /* prevents browser pull-to-refresh when drawing */
     box-shadow: 4px 4px 0px rgba(0,0,0,0.1);
 }

@@ -68,7 +68,7 @@
     color: #555;
 }
 
-/* --- NEW: REVEAL UI --- */
+/* --- REVEAL UI --- */
 
 #dt-host-reveal-app {
     display: flex;
@@ -110,7 +110,7 @@
 
 .canvas-slice {
     width: 300px;
-    height: 400px;
+    height: 250px;
     display: block;
     /* THE MAGIC OVERLAP: Pulls the next image up by 40px to hide the seam */
     margin-bottom: -40px; 

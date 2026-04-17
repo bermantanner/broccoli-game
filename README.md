@@ -2,6 +2,11 @@
 
 A real-time, local-authoritative multiplayer game engine.
 
+## Download & Play
+**[Download this release for Mac and Windows here](https://github.com/bermantanner/broccoli-game/releases/latest)**
+
+*(Note: You do not need to download this repository or have Go installed to play. Just download the .zip file for your operating system from the link above, extract it, and follow the included instructions.txt file)*
+
 I am a huge fan of Jackbox-style party games and have a ton of ideas for my own games. I wanted to build an extremely lightweight and free platform where anyone can simply download, host, and play. Whether you are all sitting on the same couch or streaming the host screen across the world on Discord, players should be able to instantly join from their phones/tablets/laptops.
 
 One interesting engineering challenge was when designing the networking architecture, it initially seemed like there were only two realistic options for multiplayer hosting:

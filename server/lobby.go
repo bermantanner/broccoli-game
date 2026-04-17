@@ -14,6 +14,8 @@ type Lobby struct {
 func (l *Lobby) Start(hub *Hub) {
 	l.hub = hub
 	log.Println("Hub successfully transitioned to Lobby state.")
+
+	l.hub.broadcastToAll(l.GetState())
 }
 
 // HandleMessage listens for the Host to click "Start Game"

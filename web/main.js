@@ -53,6 +53,17 @@ if (window.location.pathname.includes("host.html")) {
     .then(data => {
         roomCode = data.room;
         document.querySelector(".code").innerText = roomCode;
+        
+        // Grab the Ngrok URL and display it safely in the dedicated div
+        const urlParams = new URLSearchParams(window.location.search);
+        const tunnelUrl = urlParams.get('tunnel');
+        if (tunnelUrl) {
+            const linkDisplay = document.getElementById("join-link-display");
+            if (linkDisplay) {
+                linkDisplay.innerHTML = `go to: <br><strong class="public-join-link">${tunnelUrl}/web/join.html</strong>`;            
+            }
+        }
+
         connectHostWebSocket();
     })
     .catch(err => console.error("Error creating room:", err));
@@ -62,13 +73,35 @@ if (window.location.pathname.includes("host.html")) {
         const wsUrl = `${wsProtocol}//${window.location.host}/ws?room=${roomCode}&name=HostScreen&role=host`;
         window.appSocket = new WebSocket(wsUrl);
 
-        window.appSocket.onopen = () => console.log("Host connected to room:", roomCode);
+        window.appSocket.onopen = () => {
+            console.log("Host connected to room:", roomCode);
+            
+            // sending a pulse every 30 seconds, hopefully this keeps server alive 
+            setInterval(() => {
+                if (window.appSocket.readyState === WebSocket.OPEN) {
+                    window.appSocket.send(JSON.stringify({ type: "ping" }));
+                }
+            }, 30000); 
+        };
+
+        // if the socket dies, this message takes over the screen
+        window.appSocket.onclose = () => {
+            document.body.innerHTML = `
+                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; background: #ffebee; color: #c62828; font-family: monospace;">
+                    <h1>⚠️ CONNECTION LOST</h1>
+                    <p>The server dropped the connection.</p>
+                    <button onclick="location.reload()" style="padding: 10px 20px; font-size: 1.2rem; cursor: pointer;">Refresh Page</button>
+                </div>
+            `;
+        };
 
         window.appSocket.onmessage = (event) => {
             const msg = JSON.parse(event.data);
             console.log("Host Received:", msg);
 
             if (msg.type === "lobby") {
+                document.getElementById("connection-ui").classList.remove("hidden");
+                document.getElementById("game-root").innerHTML = "";
                 updatePlayerList(msg.players);
             } else if (msg.type === "error") {
                 alert(msg.message);
@@ -152,6 +185,15 @@ if (window.location.pathname.includes("join.html")) {
         window.appSocket.onmessage = (event) => {
             const msg = JSON.parse(event.data);
             console.log("Player Received:", msg);
+            
+            if (msg.type === "lobby") {
+                document.getElementById("connection-ui").classList.remove("hidden");
+                document.getElementById("game-root").innerHTML = "";
+                // phones go back to the waiting screen
+                document.getElementById("join-ui").classList.add("hidden");
+                document.getElementById("waiting-ui").classList.remove("hidden");
+                return; // Stop routing!
+            }
 
             // ROUTER: Pass messages to the active game module
             if (typeof window.handleGameMessage === "function") {
